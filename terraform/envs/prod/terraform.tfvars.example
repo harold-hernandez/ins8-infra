@@ -13,12 +13,11 @@ domain = "seedtech.dev"
 # frontend_image = "us-east4-docker.pkg.dev/seedtech-prod/app/frontend:latest"
 # migrate_image  = "us-east4-docker.pkg.dev/seedtech-prod/app/migrate:latest"
 
-# Same values as staging's tfvars (workspace/repo UUIDs are shared across
-# environments — they identify the Bitbucket repo, not a GCP project).
-bitbucket_workspace      = "seedtech-software"
-bitbucket_workspace_uuid = "{REPLACE-WITH-WORKSPACE-UUID}"
-backend_repository_uuid  = "{REPLACE-WITH-TASKS-REPO-UUID}"
-frontend_repository_uuid = "{REPLACE-WITH-INS8-FRONTEND-REPO-UUID}"
+# Same values as staging's tfvars (these identify the GitHub repos, not a
+# GCP project, so they don't vary per environment).
+github_owner        = "harold-hernandez"
+backend_repository  = "harold-hernandez/ins8-tasks"
+frontend_repository = "harold-hernandez/ins8-frontend"
 
 # No prod deploy pipeline exists yet (see ../../README.md) — this is not
 # "main". Pick a real value (a release branch, or a tag pattern once one

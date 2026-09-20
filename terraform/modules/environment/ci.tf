@@ -1,80 +1,80 @@
-# --- CI/CD: Bitbucket Pipelines via Workload Identity Federation ------------
-# Bitbucket Pipelines can request a short-lived OIDC token for a step
-# (`oidc: true`); this trades that token for GCP credentials through Workload
-# Identity Federation, so no service-account JSON key is ever stored as a
-# Bitbucket repository variable. Matches CLAUDE.md's "JWT signing secret
-# comes only from JWT_SECRET, never hardcoded" rule — same principle, applied
-# to the identity CI deploys as.
+# --- CI/CD: GitHub Actions via Workload Identity Federation ------------------
+# A workflow requests a short-lived OIDC token (`permissions: id-token: write`)
+# and the official `google-github-actions/auth` action trades it for GCP
+# credentials through Workload Identity Federation — no service-account JSON
+# key is ever stored as a GitHub secret. Matches CLAUDE.md's "JWT signing
+# secret comes only from JWT_SECRET, never hardcoded" rule — same principle,
+# applied to the identity CI deploys as.
 #
 # Two independent deploy identities (ci_backend / ci_frontend), each trusted
-# by exactly one Bitbucket repository via attribute_condition below: a
-# compromised or misconfigured pipeline in one repo still can't deploy the
-# other, and neither can any other pipeline in the same Bitbucket workspace.
+# by exactly one GitHub repository via attribute_condition below: a
+# compromised or misconfigured workflow in one repo still can't deploy the
+# other, and neither can any other repository under the same GitHub account.
 # This is the same "defense in depth" reasoning CLAUDE.md gives for scoping
 # every Postgres query by client_id even though middleware already checked
 # it — the IAM binding's principalSet restriction and this attribute_condition
 # are two independent checks, not one.
 
-resource "google_iam_workload_identity_pool" "bitbucket" {
+resource "google_iam_workload_identity_pool" "github" {
   project                   = var.project_id
-  workload_identity_pool_id = "${local.name_prefix}-bitbucket"
-  display_name              = "Bitbucket Pipelines (${var.environment})"
+  workload_identity_pool_id = "${local.name_prefix}-github"
+  display_name              = "GitHub Actions (${var.environment})"
   depends_on                = [google_project_service.apis]
 }
 
-resource "google_iam_workload_identity_pool_provider" "bitbucket" {
+resource "google_iam_workload_identity_pool_provider" "github" {
   project                            = var.project_id
-  workload_identity_pool_id          = google_iam_workload_identity_pool.bitbucket.workload_identity_pool_id
-  workload_identity_pool_provider_id = "bitbucket-oidc"
-  display_name                       = "Bitbucket OIDC"
+  workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
+  workload_identity_pool_provider_id = "github-oidc"
+  display_name                       = "GitHub OIDC"
 
   attribute_mapping = {
-    "google.subject"       = "assertion.sub"
-    "attribute.repository" = "assertion.repositoryUuid"
-    "attribute.branch"     = "assertion.branchName"
-    "attribute.workspace"  = "assertion.workspaceUuid"
+    "google.subject"             = "assertion.sub"
+    "attribute.repository"       = "assertion.repository"
+    "attribute.repository_owner" = "assertion.repository_owner"
+    "attribute.ref"              = "assertion.ref"
   }
 
   # Belt-and-suspenders alongside the per-service-account principalSet
-  # bindings below: even a token whose `aud` matches this workspace is
-  # rejected here unless it also claims one of the two repositories this
-  # environment actually deploys from, and the branch this environment
-  # deploys on. (Prod's copy of this same module should tighten
-  # ci_deploy_branch to a release branch/tag once prod deploys are wired up
-  # — see the root README, prod is deliberately not there yet.)
-  attribute_condition = "attribute.workspace == \"${var.bitbucket_workspace_uuid}\" && attribute.branch == \"${var.ci_deploy_branch}\" && (attribute.repository == \"${var.backend_repository_uuid}\" || attribute.repository == \"${var.frontend_repository_uuid}\")"
+  # bindings below: even a token from the right GitHub account is rejected
+  # here unless it also claims one of the two repositories this environment
+  # actually deploys from, and the branch this environment deploys on.
+  # (Prod's copy of this same module should tighten ci_deploy_branch to a
+  # release branch/tag once prod deploys are wired up — see the root README,
+  # prod is deliberately not there yet.)
+  attribute_condition = "attribute.repository_owner == \"${var.github_owner}\" && attribute.ref == \"refs/heads/${var.ci_deploy_branch}\" && (attribute.repository == \"${var.backend_repository}\" || attribute.repository == \"${var.frontend_repository}\")"
 
   oidc {
-    issuer_uri = "https://api.bitbucket.org/2.0/workspaces/${var.bitbucket_workspace}/pipelines-config/identity/oidc"
-    # Bitbucket's token puts a fixed, workspace-scoped ARI in `aud` rather
-    # than this provider's own resource name (which is what
-    # allowed_audiences defaults to accepting) — has to be told explicitly.
-    allowed_audiences = ["ari:cloud:bitbucket::workspace/${var.bitbucket_workspace_uuid}"]
+    issuer_uri = "https://token.actions.githubusercontent.com"
+    # No allowed_audiences override needed here (unlike the previous
+    # Bitbucket setup): google-github-actions/auth requests the OIDC token
+    # with its audience already set to this provider's own resource name,
+    # which is what GCP expects by default.
   }
 }
 
 resource "google_service_account" "ci_backend" {
   project      = var.project_id
   account_id   = "${local.name_prefix}-ci-backend"
-  display_name = "Bitbucket Pipelines deploy identity for tasks (${var.environment})"
+  display_name = "GitHub Actions deploy identity for the backend repo (${var.environment})"
 }
 
 resource "google_service_account" "ci_frontend" {
   project      = var.project_id
   account_id   = "${local.name_prefix}-ci-frontend"
-  display_name = "Bitbucket Pipelines deploy identity for ins8-frontend (${var.environment})"
+  display_name = "GitHub Actions deploy identity for the frontend repo (${var.environment})"
 }
 
 resource "google_service_account_iam_member" "ci_backend_wif" {
   service_account_id = google_service_account.ci_backend.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.bitbucket.name}/attribute.repository/${var.backend_repository_uuid}"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.backend_repository}"
 }
 
 resource "google_service_account_iam_member" "ci_frontend_wif" {
   service_account_id = google_service_account.ci_frontend.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.bitbucket.name}/attribute.repository/${var.frontend_repository_uuid}"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.frontend_repository}"
 }
 
 # --- Least-privilege deploy grants -------------------------------------------

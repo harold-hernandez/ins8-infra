@@ -48,11 +48,10 @@ module "environment" {
 
   extra_cors_origins = var.extra_cors_origins
 
-  bitbucket_workspace      = var.bitbucket_workspace
-  bitbucket_workspace_uuid = var.bitbucket_workspace_uuid
-  backend_repository_uuid  = var.backend_repository_uuid
-  frontend_repository_uuid = var.frontend_repository_uuid
-  ci_deploy_branch         = var.ci_deploy_branch
+  github_owner        = var.github_owner
+  backend_repository  = var.backend_repository
+  frontend_repository = var.frontend_repository
+  ci_deploy_branch    = var.ci_deploy_branch
 
   # Keep at least one warm instance in prod: a cold start here means a real
   # user waits on it, not just whoever's poking at staging.

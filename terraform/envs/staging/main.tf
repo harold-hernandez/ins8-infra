@@ -48,10 +48,9 @@ module "environment" {
 
   extra_cors_origins = var.extra_cors_origins
 
-  bitbucket_workspace      = var.bitbucket_workspace
-  bitbucket_workspace_uuid = var.bitbucket_workspace_uuid
-  backend_repository_uuid  = var.backend_repository_uuid
-  frontend_repository_uuid = var.frontend_repository_uuid
+  github_owner        = var.github_owner
+  backend_repository  = var.backend_repository
+  frontend_repository = var.frontend_repository
   # Staging tracks main continuously — every merge deploys. Prod (once wired)
   # should not reuse "main" here; see ci.tf's comment on ci_deploy_branch.
   ci_deploy_branch = "main"

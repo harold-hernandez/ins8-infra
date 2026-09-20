@@ -28,23 +28,18 @@ variable "extra_cors_origins" {
   default = []
 }
 
-variable "bitbucket_workspace" {
-  description = "Bitbucket workspace slug, e.g. \"seedtech-software\"."
+variable "github_owner" {
+  description = "GitHub account or org that owns both repos, e.g. \"harold-hernandez\"."
   type        = string
 }
 
-variable "bitbucket_workspace_uuid" {
-  description = "Bitbucket workspace UUID, with braces. Repository Settings -> OpenID Connect on either repo shows it."
+variable "backend_repository" {
+  description = "\"owner/repo\" for the backend, e.g. \"harold-hernandez/ins8-tasks\"."
   type        = string
 }
 
-variable "backend_repository_uuid" {
-  description = "Bitbucket repository UUID for `tasks`, with braces."
-  type        = string
-}
-
-variable "frontend_repository_uuid" {
-  description = "Bitbucket repository UUID for `ins8-frontend`, with braces."
+variable "frontend_repository" {
+  description = "\"owner/repo\" for the frontend, e.g. \"harold-hernandez/ins8-frontend\"."
   type        = string
 }
 

@@ -116,31 +116,25 @@ variable "frontend_max_instances" {
   default = 2
 }
 
-# --- CI/CD (Bitbucket Pipelines via Workload Identity Federation) -----------
-# No long-lived service-account key is stored in Bitbucket — CLAUDE.md's
+# --- CI/CD (GitHub Actions via Workload Identity Federation) ----------------
+# No long-lived service-account key is stored as a GitHub secret — CLAUDE.md's
 # "never hardcode a secret, ever" rule applies just as much to CI credentials
-# as to JWT_SECRET. Instead, each pipeline step exchanges Bitbucket's own
-# short-lived OIDC token for GCP credentials, and the trust relationship
-# below is scoped down to one repository + branch per deploy identity. See
-# ci.tf.
+# as to JWT_SECRET. Instead, each workflow exchanges GitHub's own short-lived
+# OIDC token for GCP credentials, and the trust relationship below is scoped
+# down to one repository + branch per deploy identity. See ci.tf.
 
-variable "bitbucket_workspace" {
-  description = "Bitbucket workspace slug, e.g. \"seedtech-software\" (from the workspace URL). Used to build the OIDC issuer URL."
+variable "github_owner" {
+  description = "GitHub account or org that owns both repos, e.g. \"harold-hernandez\". Restricts which account's repositories can assume either CI deploy identity — defense in depth alongside the per-repository principalSet bindings below."
   type        = string
 }
 
-variable "bitbucket_workspace_uuid" {
-  description = "Bitbucket workspace UUID, with braces, e.g. \"{11111111-2222-3333-4444-555555555555}\" — Repository Settings -> OpenID Connect (any repo in the workspace shows the same value). Must match the \"aud\" claim Bitbucket puts in its OIDC tokens, since that claim is workspace-scoped, not repository-scoped."
+variable "backend_repository" {
+  description = "\"owner/repo\" for the backend (e.g. \"harold-hernandez/ins8-tasks\"). Restricts which repository's workflow can impersonate the backend CI service account."
   type        = string
 }
 
-variable "backend_repository_uuid" {
-  description = "Bitbucket repository UUID for `tasks`, with braces — same Repository Settings -> OpenID Connect page. Restricts which repository's pipeline can impersonate the backend CI service account."
-  type        = string
-}
-
-variable "frontend_repository_uuid" {
-  description = "Bitbucket repository UUID for `ins8-frontend`, with braces. Same restriction as backend_repository_uuid, for the frontend CI service account."
+variable "frontend_repository" {
+  description = "\"owner/repo\" for the frontend (e.g. \"harold-hernandez/ins8-frontend\"). Same restriction as backend_repository, for the frontend CI service account."
   type        = string
 }
 
@@ -151,6 +145,6 @@ variable "migrate_image" {
 }
 
 variable "ci_deploy_branch" {
-  description = "Only a Bitbucket pipeline running on this branch can assume either CI deploy identity (see ci.tf's attribute_condition). Deliberately has no default: staging sets it to \"main\" explicitly; prod must pick its own value (a release branch or tag pattern, once prod deploys are actually wired up) rather than silently inheriting \"main\"."
+  description = "Only a GitHub Actions run on this branch can assume either CI deploy identity (see ci.tf's attribute_condition, which builds \"refs/heads/<this>\"). Deliberately has no default: staging sets it to \"main\" explicitly; prod must pick its own value (a release branch or tag pattern, once prod deploys are actually wired up) rather than silently inheriting \"main\"."
   type        = string
 }
