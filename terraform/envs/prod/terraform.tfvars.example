@@ -11,3 +11,16 @@ domain = "seedtech.dev"
 # least once (see ../../README.md for the bootstrap order).
 # backend_image  = "us-east4-docker.pkg.dev/seedtech-prod/app/backend:latest"
 # frontend_image = "us-east4-docker.pkg.dev/seedtech-prod/app/frontend:latest"
+# migrate_image  = "us-east4-docker.pkg.dev/seedtech-prod/app/migrate:latest"
+
+# Same values as staging's tfvars (workspace/repo UUIDs are shared across
+# environments — they identify the Bitbucket repo, not a GCP project).
+bitbucket_workspace      = "seedtech-software"
+bitbucket_workspace_uuid = "{REPLACE-WITH-WORKSPACE-UUID}"
+backend_repository_uuid  = "{REPLACE-WITH-TASKS-REPO-UUID}"
+frontend_repository_uuid = "{REPLACE-WITH-INS8-FRONTEND-REPO-UUID}"
+
+# No prod deploy pipeline exists yet (see ../../README.md) — this is not
+# "main". Pick a real value (a release branch, or a tag pattern once one
+# exists) when that pipeline actually gets built.
+ci_deploy_branch = "{REPLACE-WITH-A-PROD-DEPLOY-BRANCH-ONCE-ONE-EXISTS}"

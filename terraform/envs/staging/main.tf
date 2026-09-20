@@ -44,8 +44,17 @@ module "environment" {
 
   backend_image  = var.backend_image
   frontend_image = var.frontend_image
+  migrate_image  = var.migrate_image
 
   extra_cors_origins = var.extra_cors_origins
+
+  bitbucket_workspace      = var.bitbucket_workspace
+  bitbucket_workspace_uuid = var.bitbucket_workspace_uuid
+  backend_repository_uuid  = var.backend_repository_uuid
+  frontend_repository_uuid = var.frontend_repository_uuid
+  # Staging tracks main continuously — every merge deploys. Prod (once wired)
+  # should not reuse "main" here; see ci.tf's comment on ci_deploy_branch.
+  ci_deploy_branch = "main"
 
   # Scale-to-zero in staging: pairs with Neon's own autosuspend, so an idle
   # staging environment costs nothing. First request after idle eats a cold

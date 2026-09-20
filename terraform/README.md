@@ -138,16 +138,46 @@ Terraform's `cloud-run-service` module sets `lifecycle { ignore_changes = [...im
 on both services specifically so these `gcloud run deploy` calls (or a CI pipeline
 doing the same) don't get reverted by the next `terraform apply`.
 
+## CI/CD (Bitbucket Pipelines, staging only so far)
+
+Both `tasks/bitbucket-pipelines.yml` and `ins8-frontend/bitbucket-pipelines.yml` have
+a "Deploy to Staging" step that runs on every push to `main`: build the image, push
+it to Artifact Registry, run pending migrations (backend only, before the new
+revision takes traffic), then `gcloud run deploy`. Authentication is via Workload
+Identity Federation (`modules/environment/ci.tf`) — no service-account key is stored
+in Bitbucket; each pipeline trades its own short-lived OIDC token for GCP credentials
+scoped to exactly that repository and branch.
+
+Prod deploys are **not** wired up — `ci_deploy_branch` has no default for prod on
+purpose (see `modules/environment/variables.tf`), so this doesn't silently let every
+staging merge also assume a prod deploy identity. Building that out is future work,
+once staging has proven itself.
+
+To finish wiring a fresh staging environment after `terraform apply`:
+
+1. Get the three Bitbucket UUIDs `terraform.tfvars` needs (`bitbucket_workspace_uuid`,
+   `backend_repository_uuid`, `frontend_repository_uuid`) from each repo's
+   **Repository Settings -> OpenID Connect** page, apply, then:
+   ```bash
+   terraform output -raw workload_identity_provider
+   terraform output -raw ci_backend_service_account
+   terraform output -raw ci_frontend_service_account
+   terraform output -raw migrate_job_name
+   terraform output -raw backend_https_url
+   ```
+2. In each repo, create a Bitbucket **Deployment environment** named `staging`
+   (Repository settings -> Deployments) and set the variables listed in the comment
+   block at the bottom of that repo's `bitbucket-pipelines.yml` — it spells out
+   exactly which output goes where.
+
+The gcloud/WIF command sequence in both pipeline files is written from GCP's and
+Bitbucket's own documented flag names, but — like the existing Claude Code Review
+Gate step — hasn't been run against a real pipeline yet. Watch the first real run
+closely rather than trusting it blind.
+
 ## What's deliberately not here yet
 
-- **Database migrations.** Nothing runs `migrations/*.up.sql` automatically against
-  Neon. Run them by hand for now: `psql "$(terraform output -raw neon_connection_uri)" -f ../../../tasks/migrations/0001_init.up.sql`
-  (repeat per file, in order — skip `0002_seed_dev_data`, that's dev-only fixture
-  data). A Cloud Run Job running `golang-migrate` is the natural next step if this
-  becomes painful.
-- **CI/CD wiring.** This sets up the infrastructure `gcloud run deploy` and
-  `terraform apply` target; it doesn't add the pipeline steps that call them. See
-  `tasks/bitbucket-pipelines.yml` and whatever CI `ins8-frontend` uses.
+- **Prod CI/CD.** See above.
 - **Rate limiting on `/login`.** Already a known gap per `tasks/CLAUDE.md` — unrelated
   to this infra, called out here so it isn't forgotten during a prod launch.
 

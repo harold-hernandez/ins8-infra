@@ -38,3 +38,22 @@ output "neon_connection_uri" {
 output "uploads_bucket" {
   value = google_storage_bucket.uploads.name
 }
+
+output "ci_backend_service_account" {
+  description = "Pass to CI as CI_SERVICE_ACCOUNT for the tasks repo's deploy step."
+  value       = google_service_account.ci_backend.email
+}
+
+output "ci_frontend_service_account" {
+  description = "Pass to CI as CI_SERVICE_ACCOUNT for the ins8-frontend repo's deploy step."
+  value       = google_service_account.ci_frontend.email
+}
+
+output "workload_identity_provider" {
+  description = "Full provider resource name — pass to CI as WORKLOAD_IDENTITY_PROVIDER (the AUDIENCE argument to `gcloud iam workload-identity-pools create-cred-config`)."
+  value       = google_iam_workload_identity_pool_provider.bitbucket.name
+}
+
+output "migrate_job_name" {
+  value = google_cloud_run_v2_job.migrate.name
+}

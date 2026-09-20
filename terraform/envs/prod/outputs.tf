@@ -31,3 +31,19 @@ output "neon_connection_uri" {
   value     = module.environment.neon_connection_uri
   sensitive = true
 }
+
+output "ci_backend_service_account" {
+  value = module.environment.ci_backend_service_account
+}
+
+output "ci_frontend_service_account" {
+  value = module.environment.ci_frontend_service_account
+}
+
+output "workload_identity_provider" {
+  value = module.environment.workload_identity_provider
+}
+
+output "migrate_job_name" {
+  value = module.environment.migrate_job_name
+}

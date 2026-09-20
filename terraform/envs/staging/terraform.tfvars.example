@@ -13,3 +13,13 @@ domain = "seedtech.dev"
 # least once (see ../../README.md for the bootstrap order).
 # backend_image  = "us-east4-docker.pkg.dev/seedtech-staging/app/backend:latest"
 # frontend_image = "us-east4-docker.pkg.dev/seedtech-staging/app/frontend:latest"
+# migrate_image  = "us-east4-docker.pkg.dev/seedtech-staging/app/migrate:latest"
+
+# From Bitbucket: Repository Settings -> OpenID Connect (on either repo —
+# the workspace UUID is the same everywhere; the repository UUID differs
+# per repo). Needed for CI to deploy via Workload Identity Federation
+# instead of a stored service-account key — see modules/environment/ci.tf.
+bitbucket_workspace      = "seedtech-software"
+bitbucket_workspace_uuid = "{REPLACE-WITH-WORKSPACE-UUID}"
+backend_repository_uuid  = "{REPLACE-WITH-TASKS-REPO-UUID}"
+frontend_repository_uuid = "{REPLACE-WITH-INS8-FRONTEND-REPO-UUID}"
