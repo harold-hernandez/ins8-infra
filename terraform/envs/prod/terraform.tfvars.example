@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored.
+
+project_id = "seedtech-prod"
+region     = "us-east4"
+
+# Must already be verified in Google Search Console under the identity
+# running Terraform — see ../../README.md Prerequisites.
+domain = "seedtech.dev"
+
+# Leave these as the placeholder default until you've pushed a real image at
+# least once (see ../../README.md for the bootstrap order).
+# backend_image  = "us-east4-docker.pkg.dev/seedtech-prod/app/backend:latest"
+# frontend_image = "us-east4-docker.pkg.dev/seedtech-prod/app/frontend:latest"
