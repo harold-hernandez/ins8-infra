@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: [staging, prod]
+        env: [ins8-frontend, ins8-tasks]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3

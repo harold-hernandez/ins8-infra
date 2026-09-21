@@ -1,0 +1,17 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored.
+# The defaults in variables.tf already match this project's actual setup
+# (project_id "ins8-tasks", repo "harold-hernandez/ins8-tasks") — the only
+# thing you actually need to set here is frontend_url.
+
+# project_id = "ins8-tasks"
+# github_repository = "harold-hernandez/ins8-tasks"
+
+# Apply envs/ins8-frontend first, then:
+#   terraform output -raw frontend_url
+# and paste the result here. No default on purpose — see variables.tf.
+frontend_url = "{REPLACE-WITH-FRONTEND-RUN-APP-URL}"
+
+# Leave these as the placeholder default until CI has pushed real images at
+# least once (see ../../README.md for the bootstrap order).
+# backend_image = "us-east4-docker.pkg.dev/ins8-tasks/app/backend:latest"
+# migrate_image = "us-east4-docker.pkg.dev/ins8-tasks/app/migrate:latest"
