@@ -37,8 +37,8 @@ variable "cloud_run_job_names" {
   default     = []
 }
 
-variable "runtime_service_account_names" {
-  description = "Full resource names (google_service_account.<x>.name, not email) of runtime service accounts this identity needs roles/iam.serviceAccountUser on, to deploy revisions/jobs running as them."
-  type        = list(string)
-  default     = []
+variable "runtime_service_accounts" {
+  description = "Map of arbitrary label -> full resource name (google_service_account.<x>.name, not email) of a runtime service account this identity needs roles/iam.serviceAccountUser on, to deploy revisions/jobs running as them. A map, not a list: for_each needs statically-known keys, and google_service_account.name isn't known until apply — the labels are what Terraform can actually see at plan time."
+  type        = map(string)
+  default     = {}
 }

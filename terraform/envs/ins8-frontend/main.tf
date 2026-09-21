@@ -80,7 +80,7 @@ module "ci" {
   ci_deploy_branch                = var.ci_deploy_branch
   artifact_registry_repository_id = google_artifact_registry_repository.app.repository_id
   cloud_run_service_names         = [module.frontend.name]
-  runtime_service_account_names   = [google_service_account.frontend.name]
+  runtime_service_accounts        = { frontend = google_service_account.frontend.name }
 
   depends_on = [google_project_service.apis]
 }

@@ -77,7 +77,7 @@ resource "google_cloud_run_v2_job_iam_member" "ci_run_job" {
 # account it's assigning to the revision/job (roles/run.developer alone only
 # covers managing the Cloud Run resource itself, not "wearing" another SA).
 resource "google_service_account_iam_member" "ci_sa_user" {
-  for_each           = toset(var.runtime_service_account_names)
+  for_each           = var.runtime_service_accounts
   service_account_id = each.value
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.ci.email}"

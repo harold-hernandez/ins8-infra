@@ -3,6 +3,10 @@
 # reproducible provider version resolution.
 *.tfstate
 *.tfstate.*
+# Saved plan files can contain secret values in cleartext (e.g. a
+# random_password result) — never committed.
+*.tfplan
+tfplan
 crash.log
 crash.*.log
 *.tfvars

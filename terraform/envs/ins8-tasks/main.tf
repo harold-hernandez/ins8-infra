@@ -277,7 +277,10 @@ module "ci" {
   artifact_registry_repository_id = google_artifact_registry_repository.app.repository_id
   cloud_run_service_names         = [module.backend.name]
   cloud_run_job_names             = [google_cloud_run_v2_job.migrate.name]
-  runtime_service_account_names   = [google_service_account.backend.name, google_service_account.migrate.name]
+  runtime_service_accounts = {
+    backend = google_service_account.backend.name
+    migrate = google_service_account.migrate.name
+  }
 
   depends_on = [google_project_service.apis]
 }
